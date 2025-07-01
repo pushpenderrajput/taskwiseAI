@@ -125,14 +125,14 @@ export function CreateTaskDialog({
   };
 
   const handleBreakdown = async () => {
-    const title = form.getValues('title');
-    if (!title) {
-      form.setError('title', { message: 'Please enter a title first.' });
+    const description = form.getValues('description');
+    if (!description) {
+      form.setError('description', { message: 'Please enter a description to break down.' });
       return;
     }
     setIsAiLoading(true);
     try {
-      const result = await breakdownTask({ taskDescription: title });
+      const result = await breakdownTask({ taskDescription: description });
       const newSubtasks: Subtask[] = result.subtasks.map((sub, index) => ({
         id: `sub-${Date.now()}-${index}`,
         title: sub,
@@ -163,9 +163,9 @@ export function CreateTaskDialog({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Title</FormLabel>
+                  <FormLabel>Account/Project</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Design new landing page" {...field} />
+                    <Input placeholder="e.g., Acme Corp Q3 Campaign" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -178,7 +178,7 @@ export function CreateTaskDialog({
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Add more details..." {...field} />
+                    <Textarea placeholder="Add a detailed description for the AI to break down..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

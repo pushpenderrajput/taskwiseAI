@@ -14,7 +14,7 @@ import {z} from 'genkit';
 const BreakdownTaskInputSchema = z.object({
   taskDescription: z
     .string()
-    .describe('A high-level description of the task to be broken down.'),
+    .describe('The detailed description of the task to be broken down into subtasks.'),
 });
 export type BreakdownTaskInput = z.infer<typeof BreakdownTaskInputSchema>;
 
@@ -33,11 +33,13 @@ const prompt = ai.definePrompt({
   name: 'breakdownTaskPrompt',
   input: {schema: BreakdownTaskInputSchema},
   output: {schema: BreakdownTaskOutputSchema},
-  prompt: `You are a project management assistant. Your job is to break down a high-level task description into a list of smaller, more manageable subtasks. These subtasks should be specific and actionable.
+  prompt: `You are an expert project manager. Your role is to take a task description and break it down into a list of specific, actionable subtasks.
 
-You MUST provide your response *only* as a valid JSON object that adheres to the defined output schema. Do not add any other text, explanation, or markdown formatting like \`\`\`json.
+You MUST ONLY return a valid JSON object that strictly follows this schema: { "subtasks": ["subtask 1", "subtask 2", ...] }.
+Do not include any other text, comments, or markdown formatting like \`\`\`json.
 
-Task Description: {{{taskDescription}}}
+Here is the task description to break down:
+"{{{taskDescription}}}"
 `,
 });
 
@@ -49,8 +51,8 @@ const breakdownTaskFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    if (!output) {
-      throw new Error('The AI model failed to produce a valid response.');
+    if (!output || !output.subtasks) {
+      throw new Error('The AI model failed to produce a valid subtask list. Please try again with a more descriptive task.');
     }
     return output;
   }
