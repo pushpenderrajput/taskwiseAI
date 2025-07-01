@@ -33,12 +33,12 @@ const prompt = ai.definePrompt({
   name: 'breakdownTaskPrompt',
   input: {schema: BreakdownTaskInputSchema},
   output: {schema: BreakdownTaskOutputSchema},
-  prompt: `You are an expert project manager. Your role is to take a task description and break it down into a list of specific, actionable subtasks.
+  prompt: `You are an expert project manager. Your role is to take a high-level project description and break it down into a list of smaller, self-contained, and actionable task descriptions. Each item in the list should be a clear and concise description of a single task.
 
-You MUST ONLY return a valid JSON object that strictly follows this schema: { "subtasks": ["subtask 1", "subtask 2", ...] }.
+You MUST ONLY return a valid JSON object that strictly follows this schema: { "subtasks": ["First task description.", "Second task description.", ...] }.
 Do not include any other text, comments, or markdown formatting like \`\`\`json.
 
-Here is the task description to break down:
+Here is the project description to break down:
 "{{{taskDescription}}}"
 `,
 });
@@ -51,8 +51,8 @@ const breakdownTaskFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    if (!output || !output.subtasks) {
-      throw new Error('The AI model failed to produce a valid subtask list. Please try again with a more descriptive task.');
+    if (!output || !output.subtasks || output.subtasks.length === 0) {
+      throw new Error('The AI model failed to produce a valid task list. Please try again with a more descriptive task.');
     }
     return output;
   }

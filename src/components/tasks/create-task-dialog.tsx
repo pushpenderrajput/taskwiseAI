@@ -65,7 +65,7 @@ export function CreateTaskDialog({
   onOpenChange,
   task,
 }: CreateTaskDialogProps) {
-  const { addTask, updateTask } = useTaskStore();
+  const { addTask, updateTask, addBulkTasks } = useTaskStore();
   const { toast } = useToast();
   const [isAiLoading, setIsAiLoading] = useState(false);
 
@@ -125,23 +125,48 @@ export function CreateTaskDialog({
   };
 
   const handleBreakdown = async () => {
-    const description = form.getValues('description');
+    const { title, description, priority } = form.getValues();
+
+    if (!title) {
+      form.setError('title', { message: 'Please enter an Account/Project before breaking down.' });
+      return;
+    }
     if (!description) {
       form.setError('description', { message: 'Please enter a description to break down.' });
       return;
     }
+
     setIsAiLoading(true);
     try {
       const result = await breakdownTask({ taskDescription: description });
-      const newSubtasks: Subtask[] = result.subtasks.map((sub, index) => ({
-        id: `sub-${Date.now()}-${index}`,
-        title: sub,
-        completed: false,
+
+      const tasksToAdd: Task[] = result.subtasks.map((taskDescription) => ({
+        id: `TASK-${Math.floor(Math.random() * 9000) + 1000}`,
+        title: title,
+        description: taskDescription,
+        status: 'To-Do',
+        priority: priority,
+        createdAt: new Date().toISOString(),
+        subtasks: [],
       }));
-      form.setValue('subtasks', [...(form.getValues('subtasks') || []), ...newSubtasks]);
-      toast({ title: 'Subtasks Generated', description: `${newSubtasks.length} subtasks added by AI.` });
+
+      if (tasksToAdd.length > 0) {
+        addBulkTasks(tasksToAdd);
+        toast({
+          title: 'Tasks Generated',
+          description: `${tasksToAdd.length} tasks were created from your description.`,
+        });
+        handleClose();
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'No tasks generated',
+          description: 'The AI could not break down the description into tasks.',
+        });
+      }
     } catch (error) {
-      toast({ variant: 'destructive', title: 'AI Error', description: 'Failed to generate subtasks.' });
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate tasks.';
+      toast({ variant: 'destructive', title: 'AI Error', description: errorMessage });
     } finally {
       setIsAiLoading(false);
     }
@@ -153,7 +178,7 @@ export function CreateTaskDialog({
         <DialogHeader>
           <DialogTitle>{task ? 'Edit Task' : 'Create Task'}</DialogTitle>
           <DialogDescription>
-            {task ? 'Update the details of your task.' : 'Add a new task to your list.'}
+            {task ? 'Update the details of your task.' : 'Add a new task to your list, or break down a large one with AI.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -234,14 +259,7 @@ export function CreateTaskDialog({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-medium">Subtasks</h3>
-                <Button type="button" variant="outline" size="sm" onClick={handleBreakdown} disabled={isAiLoading}>
-                  {isAiLoading ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Wand2 className="mr-2 h-4 w-4" />
-                  )}
-                  Break down with AI
-                </Button>
+                <div></div>
               </div>
               <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
                 {form.watch('subtasks')?.map((subtask, index) => (
@@ -265,13 +283,23 @@ export function CreateTaskDialog({
               </div>
             </div>
 
-            <DialogFooter>
-              <Button type="button" variant="ghost" onClick={handleClose}>
-                Cancel
+            <DialogFooter className="sm:justify-between">
+              <Button type="button" variant="outline" size="sm" onClick={handleBreakdown} disabled={isAiLoading}>
+                {isAiLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Wand2 className="mr-2 h-4 w-4" />
+                )}
+                Break down into Tasks
               </Button>
-              <Button type="submit">
-                {task ? 'Save Changes' : 'Create Task'}
-              </Button>
+              <div className="flex gap-2">
+                <Button type="button" variant="ghost" onClick={handleClose}>
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  {task ? 'Save Changes' : 'Create Task'}
+                </Button>
+              </div>
             </DialogFooter>
           </form>
         </Form>
