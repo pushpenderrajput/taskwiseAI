@@ -42,14 +42,14 @@ interface TaskCardProps {
 
 const statusIcons: Record<Task['status'], React.ReactNode> = {
   'To-Do': <Circle className="h-4 w-4 text-muted-foreground" />,
-  'In Progress': <Clock className="h-4 w-4 text-blue-500" />,
-  Completed: <CheckCircle2 className="h-4 w-4 text-green-500" />,
+  'In Progress': <Clock className="h-4 w-4 text-primary" />,
+  Completed: <CheckCircle2 className="h-4 w-4 text-chart-2" />,
 };
 
 const priorityIcons: Record<Task['priority'], React.ReactNode> = {
-  High: <ChevronsUp className="h-4 w-4 text-red-500" />,
-  Medium: <ChevronUp className="h-4 w-4 text-yellow-500" />,
-  Low: <SignalLow className="h-4 w-4 text-green-500" />,
+  High: <ChevronsUp className="h-4 w-4 text-destructive" />,
+  Medium: <ChevronUp className="h-4 w-4 text-chart-4" />,
+  Low: <SignalLow className="h-4 w-4 text-chart-2" />,
 };
 
 export function TaskCard({ task }: TaskCardProps) {
@@ -88,7 +88,17 @@ export function TaskCard({ task }: TaskCardProps) {
 
   return (
     <>
-      <Card className="flex flex-col transition-all hover:shadow-md">
+      <Card
+        className={cn(
+          'flex flex-col transition-all hover:shadow-lg border-l-4',
+          {
+            'border-l-destructive': task.priority === 'High',
+            'border-l-chart-4': task.priority === 'Medium',
+            'border-l-chart-2': task.priority === 'Low',
+            'opacity-70': task.status === 'Completed',
+          }
+        )}
+      >
         <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4">
           <CardTitle
             className={cn(

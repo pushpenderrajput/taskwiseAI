@@ -14,17 +14,38 @@ import {
   SignalMedium,
   ChevronsUp,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const statuses = [
-  { value: 'To-Do', label: 'To-Do', icon: Circle },
-  { value: 'In Progress', label: 'In Progress', icon: Clock },
-  { value: 'Completed', label: 'Completed', icon: CheckCircle2 },
+  {
+    value: 'To-Do',
+    label: 'To-Do',
+    icon: Circle,
+    color: 'text-muted-foreground',
+  },
+  {
+    value: 'In Progress',
+    label: 'In Progress',
+    icon: Clock,
+    color: 'text-primary',
+  },
+  {
+    value: 'Completed',
+    label: 'Completed',
+    icon: CheckCircle2,
+    color: 'text-chart-2',
+  },
 ];
 
 const priorities = [
-  { value: 'Low', label: 'Low', icon: SignalLow },
-  { value: 'Medium', label: 'Medium', icon: SignalMedium },
-  { value: 'High', label: 'High', icon: ChevronsUp },
+  { value: 'Low', label: 'Low', icon: SignalLow, color: 'text-chart-2' },
+  {
+    value: 'Medium',
+    label: 'Medium',
+    icon: SignalMedium,
+    color: 'text-chart-4',
+  },
+  { value: 'High', label: 'High', icon: ChevronsUp, color: 'text-destructive' },
 ];
 
 export const columns: ColumnDef<Task>[] = [
@@ -89,7 +110,7 @@ export const columns: ColumnDef<Task>[] = [
       return (
         <div className="flex w-[100px] items-center">
           {status.icon && (
-            <status.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+            <status.icon className={cn('mr-2 h-4 w-4', status.color)} />
           )}
           <span>{status.label}</span>
         </div>
@@ -116,7 +137,7 @@ export const columns: ColumnDef<Task>[] = [
       return (
         <div className="flex items-center">
           {priority.icon && (
-            <priority.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+            <priority.icon className={cn('mr-2 h-4 w-4', priority.color)} />
           )}
           <span>{priority.label}</span>
         </div>
