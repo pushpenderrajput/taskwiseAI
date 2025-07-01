@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTaskStore } from '@/store/tasks';
 import { Task } from '@/types';
 import { Header } from '@/components/layout/header';
@@ -8,9 +8,119 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { subDays } from 'date-fns';
 import { summarizeReport } from '@/ai/flows/summarize-report';
-import { Loader2, Wand2 } from 'lucide-react';
+import { Loader2, Wand2, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+const ReportContent = ({
+  tasks,
+  period,
+  startDate,
+  endDate,
+}: {
+  tasks: Task[];
+  period: string;
+  startDate: Date;
+  endDate: Date;
+}) => {
+  const { toast } = useToast();
+  const [reportText, setReportText] = useState('');
+
+  useEffect(() => {
+    if (tasks.length === 0) {
+      setReportText('No tasks completed in this period.');
+      return;
+    }
+
+    const periodTitle = period.toUpperCase();
+    const formattedStartDate = startDate.toLocaleDateString();
+    const formattedEndDate = endDate.toLocaleDateString();
+
+    const tasksByAccount = tasks.reduce((acc, task) => {
+      const account = task.title;
+      if (!acc[account]) {
+        acc[account] = [];
+      }
+      acc[account].push(task);
+      return acc;
+    }, {} as Record<string, Task[]>);
+
+    const accountSummary = Object.entries(tasksByAccount)
+      .map(([account, taskItems]) => `- ${account}: ${taskItems.length} task(s)`)
+      .join('\n');
+
+    const detailedList = tasks
+      .sort((a, b) => new Date(a.completedAt!).getTime() - new Date(b.completedAt!).getTime())
+      .map((task) => {
+        const completedDate = new Date(task.completedAt!).toISOString().split('T')[0];
+        const description = task.description || 'No description';
+        return `- [${completedDate}] ${task.title}: ${description}`;
+      })
+      .join('\n');
+
+    const text = `ACTIVITY REPORT (${periodTitle})
+Period: ${formattedStartDate} - ${formattedEndDate}
+========================================
+
+Total Tasks Completed: ${tasks.length}
+
+COMPLETED TASKS BY ACCOUNT:
+${accountSummary}
+
+DETAILED LIST:
+${detailedList}`;
+
+    setReportText(text);
+  }, [tasks, period, startDate, endDate]);
+
+  const handleCopy = () => {
+    if (tasks.length > 0) {
+      navigator.clipboard.writeText(reportText);
+      toast({
+        title: 'Report Copied',
+        description: 'The report has been copied to your clipboard.',
+      });
+    }
+  };
+
+  if (tasks.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Activity Report</CardTitle>
+          <CardDescription>
+            {period.charAt(0).toUpperCase() + period.slice(1)} report of completed tasks.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">No tasks completed in this period.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader className="flex-row items-center justify-between">
+        <div>
+          <CardTitle>Activity Report</CardTitle>
+          <CardDescription>
+            {period.charAt(0).toUpperCase() + period.slice(1)} report of completed tasks.
+          </CardDescription>
+        </div>
+        <Button variant="outline" size="sm" onClick={handleCopy} disabled={tasks.length === 0}>
+          <Copy className="mr-2 h-4 w-4" />
+          Copy
+        </Button>
+      </CardHeader>
+      <CardContent>
+        <pre className="overflow-x-auto rounded-md bg-muted p-4 font-mono text-sm whitespace-pre-wrap">
+          {reportText}
+        </pre>
+      </CardContent>
+    </Card>
+  );
+};
 
 export default function ReportingPage() {
   const tasks = useTaskStore((state) => state.tasks);
@@ -25,11 +135,11 @@ export default function ReportingPage() {
   const getFilteredTasks = (period: string): Task[] => {
     switch (period) {
       case 'weekly':
-        return completedTasks.filter(t => new Date(t.completedAt!) >= subDays(now, 7));
+        return completedTasks.filter((t) => new Date(t.completedAt!) >= subDays(now, 7));
       case 'monthly':
-        return completedTasks.filter(t => new Date(t.completedAt!) >= subDays(now, 30));
+        return completedTasks.filter((t) => new Date(t.completedAt!) >= subDays(now, 30));
       case 'yearly':
-        return completedTasks.filter(t => new Date(t.completedAt!) >= subDays(now, 365));
+        return completedTasks.filter((t) => new Date(t.completedAt!) >= subDays(now, 365));
       default:
         return [];
     }
@@ -54,7 +164,7 @@ export default function ReportingPage() {
         startDate = now;
     }
     return { startDate, endDate };
-  }
+  };
 
   const handleSummarize = async () => {
     setSummary('');
@@ -67,7 +177,7 @@ export default function ReportingPage() {
     const { startDate, endDate } = getPeriodDates(activeTab);
 
     const reportData = {
-      tasks: tasksForSummary.map(t => ({
+      tasks: tasksForSummary.map((t) => ({
         title: t.title,
         description: t.description,
         priority: t.priority,
@@ -76,7 +186,7 @@ export default function ReportingPage() {
       startDate: startDate.toLocaleDateString(),
       endDate: endDate.toLocaleDateString(),
     };
-    
+
     try {
       const result = await summarizeReport(reportData);
       setSummary(result.summary);
@@ -86,40 +196,6 @@ export default function ReportingPage() {
     } finally {
       setIsAiLoading(false);
     }
-  };
-
-  const ReportContent = ({ period }: { period: string }) => {
-    const filteredTasks = getFilteredTasks(period);
-
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Completed Tasks</CardTitle>
-          <CardDescription>
-            {filteredTasks.length} task{filteredTasks.length !== 1 && 's'} completed.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {filteredTasks.length > 0 ? (
-            <ul className="space-y-4">
-              {filteredTasks.map((task) => (
-                <li key={task.id} className="border-b pb-4 last:border-b-0 last:pb-0">
-                  <p className="font-semibold">{task.title}</p>
-                  {task.description && (
-                    <p className="mt-1 text-sm text-muted-foreground">{task.description}</p>
-                  )}
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    Completed on: {new Date(task.completedAt!).toLocaleDateString()}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted-foreground">No tasks completed in this period.</p>
-          )}
-        </CardContent>
-      </Card>
-    );
   };
 
   return (
@@ -156,23 +232,42 @@ export default function ReportingPage() {
         </Alert>
       )}
 
-      <Tabs defaultValue="weekly" className="space-y-4" onValueChange={(value) => {
-        setActiveTab(value);
-        setSummary('');
-      }}>
+      <Tabs
+        defaultValue="weekly"
+        className="space-y-4"
+        onValueChange={(value) => {
+          setActiveTab(value);
+          setSummary('');
+        }}
+      >
         <TabsList>
           <TabsTrigger value="weekly">Weekly</TabsTrigger>
           <TabsTrigger value="monthly">Monthly</TabsTrigger>
           <TabsTrigger value="yearly">Yearly</TabsTrigger>
         </TabsList>
         <TabsContent value="weekly" className="space-y-4">
-          <ReportContent period="weekly" />
+          <ReportContent
+            period="weekly"
+            tasks={getFilteredTasks('weekly')}
+            startDate={getPeriodDates('weekly').startDate}
+            endDate={getPeriodDates('weekly').endDate}
+          />
         </TabsContent>
         <TabsContent value="monthly" className="space-y-4">
-          <ReportContent period="monthly" />
+          <ReportContent
+            period="monthly"
+            tasks={getFilteredTasks('monthly')}
+            startDate={getPeriodDates('monthly').startDate}
+            endDate={getPeriodDates('monthly').endDate}
+          />
         </TabsContent>
         <TabsContent value="yearly" className="space-y-4">
-          <ReportContent period="yearly" />
+          <ReportContent
+            period="yearly"
+            tasks={getFilteredTasks('yearly')}
+            startDate={getPeriodDates('yearly').startDate}
+            endDate={getPeriodDates('yearly').endDate}
+          />
         </TabsContent>
       </Tabs>
     </div>
