@@ -1,7 +1,13 @@
 'use client';
 import { useState } from 'react';
-import { Task } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Task, TaskStatus } from '@/types';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,15 +24,17 @@ import {
   Clock,
   ChevronUp,
   ChevronsUp,
-  Signal,
-  SignalMedium,
   SignalLow,
   Calendar,
+  CheckCheck,
+  CopyPlus,
+  MessageSquarePlus,
+  Undo2,
 } from 'lucide-react';
 import { useTaskStore } from '@/store/tasks';
 import { cn } from '@/lib/utils';
 import { CreateTaskDialog } from './create-task-dialog';
-import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 
 interface TaskCardProps {
   task: Task;
@@ -45,21 +53,48 @@ const priorityIcons: Record<Task['priority'], React.ReactNode> = {
 };
 
 export function TaskCard({ task }: TaskCardProps) {
-  const deleteTask = useTaskStore((state) => state.deleteTask);
+  const { deleteTask, updateTask, completeAndCarryForward, followUp } =
+    useTaskStore();
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   const handleDelete = () => {
     deleteTask(task.id);
   };
 
+  const handleStatusChange = (status: TaskStatus) => {
+    updateTask(task.id, { status });
+    toast({
+      title: `Task status updated`,
+      description: `"${task.title}" marked as ${status}.`,
+    });
+  };
+
+  const handleCarryForward = () => {
+    completeAndCarryForward(task.id);
+    toast({
+      title: 'Task Completed & Carried Forward',
+      description: `A new task has been created for "${task.title}".`,
+    });
+  };
+
+  const handleFollowUp = () => {
+    followUp(task.id);
+    toast({
+      title: 'Follow-up Created',
+      description: `A new follow-up task has been created for "${task.title}".`,
+    });
+  };
+
   return (
     <>
-      <Card className="transition-all hover:shadow-md">
+      <Card className="flex flex-col transition-all hover:shadow-md">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4">
           <CardTitle
             className={cn(
               'text-base font-medium',
-              task.status === 'Completed' && 'line-through text-muted-foreground'
+              task.status === 'Completed' &&
+                'line-through text-muted-foreground'
             )}
           >
             {task.title}
@@ -76,32 +111,79 @@ export function TaskCard({ task }: TaskCardProps) {
                 <Edit className="mr-2 h-4 w-4" />
                 <span>Edit</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDelete} className="text-destructive">
+              <DropdownMenuItem
+                onClick={handleDelete}
+                className="text-destructive"
+              >
                 <Trash2 className="mr-2 h-4 w-4" />
                 <span>Delete</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </CardHeader>
-        <CardContent className="p-4 pt-0">
-            {task.description && <p className="text-sm text-muted-foreground mb-4">{task.description}</p>}
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1" title={task.status}>
-                        {statusIcons[task.status]}
-                        <span className="hidden sm:inline">{task.status}</span>
-                    </div>
-                    <div className="flex items-center gap-1" title={task.priority}>
-                        {priorityIcons[task.priority]}
-                        <span className="hidden sm:inline">{task.priority}</span>
-                    </div>
-                </div>
-                <div className="flex items-center gap-1" title={`Created on ${new Date(task.createdAt).toLocaleDateString()}`}>
-                    <Calendar className="h-4 w-4" />
-                    <span>{new Date(task.createdAt).toLocaleDateString()}</span>
-                </div>
+        <CardContent className="flex-grow p-4 pt-0">
+          {task.description && (
+            <p className="mb-4 text-sm text-muted-foreground">
+              {task.description}
+            </p>
+          )}
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1" title={task.status}>
+                {statusIcons[task.status]}
+                <span className="hidden sm:inline">{task.status}</span>
+              </div>
+              <div className="flex items-center gap-1" title={task.priority}>
+                {priorityIcons[task.priority]}
+                <span className="hidden sm:inline">{task.priority}</span>
+              </div>
             </div>
+            <div
+              className="flex items-center gap-1"
+              title={`Created on ${new Date(
+                task.createdAt
+              ).toLocaleDateString()}`}
+            >
+              <Calendar className="h-4 w-4" />
+              <span>{new Date(task.createdAt).toLocaleDateString()}</span>
+            </div>
+          </div>
         </CardContent>
+        <CardFooter className="flex flex-wrap items-center gap-2 p-4 pt-2">
+          {task.status !== 'Completed' ? (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleStatusChange('Completed')}
+              >
+                <CheckCheck className="mr-2 h-4 w-4" />
+                Complete
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCarryForward}
+              >
+                <CopyPlus className="mr-2 h-4 w-4" />
+                Carry Forward
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleFollowUp}>
+                <MessageSquarePlus className="mr-2 h-4 w-4" />
+                Follow Up
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleStatusChange('To-Do')}
+            >
+              <Undo2 className="mr-2 h-4 w-4" />
+              Re-open Task
+            </Button>
+          )}
+        </CardFooter>
       </Card>
       <CreateTaskDialog
         open={isEditDialogOpen}
