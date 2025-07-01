@@ -35,7 +35,7 @@ const summarizeReportPrompt = ai.definePrompt({
 
   Please provide a concise and insightful summary of the following report.
 
-  Provide your response as a JSON object that adheres to the defined output schema.
+  You MUST provide your response as a JSON object that adheres to the defined output schema. Do not add any other text or explanation.
 
   Report Content:
   {{reportContent}}
