@@ -71,8 +71,9 @@ export const columns: ColumnDef<Task>[] = [
       return (
         <Badge
           variant="outline"
-          className={cn('w-[100px] justify-center', status.className)}
+          className={cn('w-[100px] justify-center gap-1.5', status.className)}
         >
+          {status.icon && <status.icon className="h-3 w-3" />}
           {status.label}
         </Badge>
       );
@@ -98,8 +99,9 @@ export const columns: ColumnDef<Task>[] = [
       return (
         <Badge
           variant="outline"
-          className={cn('w-[100px] justify-center', priority.className)}
+          className={cn('w-[100px] justify-center gap-1.5', priority.className)}
         >
+          {priority.icon && <priority.icon className="h-3 w-3" />}
           {priority.label}
         </Badge>
       );

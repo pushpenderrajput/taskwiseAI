@@ -127,12 +127,14 @@ export function TaskCard({ task }: TaskCardProps) {
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               {status && (
-                <Badge variant="outline" className={cn(status.className)}>
+                <Badge variant="outline" className={cn('gap-1.5', status.className)}>
+                  {status.icon && <status.icon className="h-3 w-3" />}
                   {status.label}
                 </Badge>
               )}
               {priority && (
-                <Badge variant="outline" className={cn(priority.className)}>
+                <Badge variant="outline" className={cn('gap-1.5', priority.className)}>
+                  {priority.icon && <priority.icon className="h-3 w-3" />}
                   {priority.label}
                 </Badge>
               )}
@@ -155,20 +157,24 @@ export function TaskCard({ task }: TaskCardProps) {
                 variant="outline"
                 size="sm"
                 onClick={() => handleStatusChange('Completed')}
+                className="border-chart-2/50 bg-chart-2/10 text-chart-2 hover:bg-chart-2/20 hover:text-chart-2"
               >
-                <CheckCheck className="mr-2 h-4 w-4" />
+                <CheckCheck />
                 Complete
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleCarryForward}
+                className="border-primary/50 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary"
               >
-                <CopyPlus className="mr-2 h-4 w-4" />
+                <CopyPlus />
                 Carry Forward
               </Button>
-              <Button variant="outline" size="sm" onClick={handleFollowUp}>
-                <MessageSquarePlus className="mr-2 h-4 w-4" />
+              <Button variant="outline" size="sm" onClick={handleFollowUp}
+                className="border-accent/50 bg-accent/10 text-accent hover:bg-accent/20 hover:text-accent"
+              >
+                <MessageSquarePlus />
                 Follow Up
               </Button>
             </>
@@ -178,7 +184,7 @@ export function TaskCard({ task }: TaskCardProps) {
               size="sm"
               onClick={() => handleStatusChange('To-Do')}
             >
-              <Undo2 className="mr-2 h-4 w-4" />
+              <Undo2 />
               Re-open Task
             </Button>
           )}
