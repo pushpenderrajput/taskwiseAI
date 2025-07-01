@@ -86,7 +86,7 @@ export function TaskCard({ task }: TaskCardProps) {
           }
         )}
       >
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2">
           <CardTitle
             className={cn(
               'text-sm font-medium',
@@ -118,9 +118,9 @@ export function TaskCard({ task }: TaskCardProps) {
             </DropdownMenuContent>
           </DropdownMenu>
         </CardHeader>
-        <CardContent className="flex-grow p-3 pt-0">
+        <CardContent className="flex-grow p-2 pt-0">
           {task.description && (
-            <p className="mb-2 text-sm text-muted-foreground">
+            <p className="mb-1 text-sm text-muted-foreground">
               {task.description}
             </p>
           )}
@@ -150,12 +150,12 @@ export function TaskCard({ task }: TaskCardProps) {
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-wrap items-center gap-2 p-3 pt-2">
+        <CardFooter className="flex flex-wrap items-center gap-1 p-2 pt-1">
           {task.status !== 'Completed' ? (
             <>
               <Button
                 variant="outline"
-                size="sm"
+                size="xs"
                 onClick={() => handleStatusChange('Completed')}
                 className="border-chart-2/50 bg-chart-2/10 text-chart-2 hover:bg-chart-2/20 hover:text-chart-2"
               >
@@ -164,14 +164,14 @@ export function TaskCard({ task }: TaskCardProps) {
               </Button>
               <Button
                 variant="outline"
-                size="sm"
+                size="xs"
                 onClick={handleCarryForward}
                 className="border-primary/50 bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary"
               >
                 <CopyPlus />
                 Carry Forward
               </Button>
-              <Button variant="outline" size="sm" onClick={handleFollowUp}
+              <Button variant="outline" size="xs" onClick={handleFollowUp}
                 className="border-accent/50 bg-accent/10 text-accent hover:bg-accent/20 hover:text-accent"
               >
                 <MessageSquarePlus />
@@ -181,7 +181,7 @@ export function TaskCard({ task }: TaskCardProps) {
           ) : (
             <Button
               variant="outline"
-              size="sm"
+              size="xs"
               onClick={() => handleStatusChange('To-Do')}
             >
               <Undo2 />
