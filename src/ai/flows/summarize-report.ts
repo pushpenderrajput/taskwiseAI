@@ -33,12 +33,12 @@ const summarizeReportPrompt = ai.definePrompt({
   output: {schema: SummarizeReportOutputSchema},
   prompt: `You are an AI assistant tasked with summarizing reports of completed tasks.
 
-  Please provide a concise and insightful summary of the following report.
+  Provide a concise and insightful summary of the following report.
 
-  You MUST provide your response as a JSON object that adheres to the defined output schema. Do not add any other text or explanation.
+  You MUST provide your response *only* as a valid JSON object that adheres to the defined output schema. Do not add any other text, explanation, or markdown formatting like \`\`\`json.
 
   Report Content:
-  {{reportContent}}
+  {{{reportContent}}}
   `,
 });
 
@@ -50,6 +50,9 @@ const summarizeReportFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await summarizeReportPrompt(input);
-    return output!;
+    if (!output) {
+      throw new Error('The AI model failed to produce a valid response.');
+    }
+    return output;
   }
 );

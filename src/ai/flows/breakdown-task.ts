@@ -35,7 +35,7 @@ const prompt = ai.definePrompt({
   output: {schema: BreakdownTaskOutputSchema},
   prompt: `You are a project management assistant. Your job is to break down a high-level task description into a list of smaller, more manageable subtasks. These subtasks should be specific and actionable.
 
-You MUST provide your response as a JSON object that adheres to the defined output schema. Do not add any other text or explanation.
+You MUST provide your response *only* as a valid JSON object that adheres to the defined output schema. Do not add any other text, explanation, or markdown formatting like \`\`\`json.
 
 Task Description: {{{taskDescription}}}
 `,
@@ -49,6 +49,9 @@ const breakdownTaskFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    if (!output) {
+      throw new Error('The AI model failed to produce a valid response.');
+    }
+    return output;
   }
 );
