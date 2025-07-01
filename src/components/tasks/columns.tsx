@@ -124,6 +124,19 @@ export const columns: ColumnDef<Task>[] = [
     },
   },
   {
+    accessorKey: 'completedAt',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Completed At" />
+    ),
+    cell: ({ row }) => {
+      return (
+        <span>
+          {new Date(row.getValue('completedAt')).toLocaleDateString()}
+        </span>
+      );
+    },
+  },
+  {
     id: 'actions',
     cell: ({ row }) => <DataTableRowActions row={row} />,
   },
