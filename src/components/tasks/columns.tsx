@@ -131,8 +131,11 @@ export const columns: ColumnDef<Task>[] = [
     cell: ({ row }) => {
       return (
         <span>
-          {new Date(row.getValue('completedAt')).toLocaleDateString()}
+          {row.getValue('completedAt')
+            ? new Date(row.getValue('completedAt')).toLocaleDateString()
+            : 'N/A'}
         </span>
+
       );
     },
   },
