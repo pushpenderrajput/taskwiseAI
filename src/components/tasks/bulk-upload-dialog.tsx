@@ -45,6 +45,7 @@ export function BulkUploadDialog({ open, onOpenChange }: BulkUploadDialogProps) 
             id: `TASK-${Math.floor(Math.random() * 9000) + 1000}`,
             title: item.title || 'Untitled Task',
             description: item.description || '',
+            accountManager: item.accountManager || '',
             status: ['To-Do', 'In Progress', 'Completed'].includes(item.status) ? item.status : 'To-Do',
             priority: ['Low', 'Medium', 'High'].includes(item.priority) ? item.priority : 'Medium',
             createdAt: new Date().toISOString(),
@@ -103,7 +104,7 @@ export function BulkUploadDialog({ open, onOpenChange }: BulkUploadDialogProps) 
         <DialogHeader>
           <DialogTitle>Bulk Upload Tasks</DialogTitle>
           <DialogDescription>
-            Paste CSV data below or upload a CSV file. The file must contain a 'title' column. Optional columns: 'description', 'status', 'priority'.
+            Paste CSV data below or upload a CSV file. The file must contain a 'title' column. Optional columns: 'description', 'accountManager', 'status', 'priority'.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -116,7 +117,7 @@ export function BulkUploadDialog({ open, onOpenChange }: BulkUploadDialogProps) 
                 <Label htmlFor="csv-text">Paste CSV Data</Label>
                 <Textarea
                     id="csv-text"
-                    placeholder="title,description,status,priority&#10;My first task,Details here,To-Do,High"
+                    placeholder="title,description,accountManager,status,priority&#10;My first task,Details here,John Doe,To-Do,High"
                     value={csvData}
                     onChange={(e) => setCsvData(e.target.value)}
                     rows={8}

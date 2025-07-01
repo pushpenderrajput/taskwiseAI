@@ -42,13 +42,28 @@ export const columns: ColumnDef<Task>[] = [
   {
     accessorKey: 'title',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Title" />
+      <DataTableColumnHeader column={column} title="Account/Project" />
     ),
     cell: ({ row }) => {
       return (
         <div className="flex space-x-2">
-          <span className="max-w-[500px] truncate font-medium">
+          <span className="max-w-[300px] truncate font-medium">
             {row.getValue('title')}
+          </span>
+        </div>
+      );
+    },
+  },
+   {
+    accessorKey: 'accountManager',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Account Manager" />
+    ),
+    cell: ({ row }) => {
+      return (
+        <div className="flex space-x-2">
+          <span className="max-w-[200px] truncate font-medium">
+            {row.getValue('accountManager') || 'N/A'}
           </span>
         </div>
       );

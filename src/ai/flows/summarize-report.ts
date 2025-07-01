@@ -15,6 +15,7 @@ const SummarizeReportInputSchema = z.object({
   tasks: z.array(z.object({
     title: z.string().describe("The Account/Project name for the task."),
     description: z.string().optional().describe("The detailed description of the task."),
+    accountManager: z.string().optional().describe("The name of the account manager for the task."),
     priority: z.string().describe("The priority of the task (Low, Medium, High)."),
     completedAt: z.string().describe("The ISO date string of when the task was completed."),
   })).describe("A list of completed tasks."),
@@ -52,7 +53,7 @@ This report covers the reporting period. During this time, your **Total Tasks Co
 [Mention one or two key completions, for example: 'This includes the "Task Description" task for the "Account/Project" account recorded on its completion date.']
 
 **Observations & Suggestions**
-[Analyze the activity. Mention which accounts/projects are most active. If activity is low, point it out. For example: 'Activity during this period was concentrated on the X account.' or 'Activity was low during this period.' Provide actionable suggestions. For example: 'To gain meaningful insights, consider logging tasks more consistently to build a comprehensive dataset.']"
+[Analyze the activity. Mention which accounts/projects are most active. Mention which account managers are most active. For example: 'Activity was concentrated on the X account, handled by John D.' or 'Activity was low during this period.' Provide actionable suggestions. For example: 'To gain meaningful insights, consider logging tasks more consistently to build a comprehensive dataset.']"
 
 You MUST ONLY return a valid JSON object that strictly follows this schema: { "summary": "Your detailed summary here, including the sections and markdown." }.
 Do not include any other text, comments, or markdown formatting like \`\`\`json.

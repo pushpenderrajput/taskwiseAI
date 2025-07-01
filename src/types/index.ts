@@ -12,6 +12,7 @@ export interface Task {
   id: string;
   title: string;
   description?: string;
+  accountManager?: string;
   status: TaskStatus;
   priority: TaskPriority;
   createdAt: string; // ISO string

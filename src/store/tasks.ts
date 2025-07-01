@@ -81,9 +81,10 @@ export const useTaskStore = create<TaskState>()(
               : t
           );
 
-          const newTask = {
+          const newTask: Task = {
             title: taskToCarryForward.title,
             description: taskToCarryForward.description,
+            accountManager: taskToCarryForward.accountManager,
             priority: taskToCarryForward.priority,
             subtasks: taskToCarryForward.subtasks?.map((st) => ({
               ...st,
@@ -102,11 +103,12 @@ export const useTaskStore = create<TaskState>()(
           const taskToFollowUp = state.tasks.find((t) => t.id === taskId);
           if (!taskToFollowUp) return state;
 
-          const newTask = {
+          const newTask: Task = {
             title: `Follow up on: ${taskToFollowUp.title}`,
             description: `Original task description: ${
               taskToFollowUp.description || 'N/A'
             }`,
+            accountManager: taskToFollowUp.accountManager,
             priority: 'High' as TaskPriority,
             id: `TASK-${Math.floor(Math.random() * 9000) + 1000}`,
             createdAt: new Date().toISOString(),

@@ -33,7 +33,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Wand2, Loader2, Trash2 } from 'lucide-react';
+import { Wand2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface CreateTaskDialogProps {
@@ -45,6 +45,7 @@ interface CreateTaskDialogProps {
 const formSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters long.'),
   description: z.string().optional(),
+  accountManager: z.string().optional(),
   status: z.enum(['To-Do', 'In Progress', 'Completed']),
   priority: z.enum(['Low', 'Medium', 'High']),
   subtasks: z
@@ -74,6 +75,7 @@ export function CreateTaskDialog({
     defaultValues: {
       title: task?.title ?? '',
       description: task?.description ?? '',
+      accountManager: task?.accountManager ?? '',
       status: task?.status ?? 'To-Do',
       priority: task?.priority ?? 'Medium',
       subtasks: task?.subtasks ?? [],
@@ -84,6 +86,7 @@ export function CreateTaskDialog({
     form.reset({
       title: '',
       description: '',
+      accountManager: '',
       status: 'To-Do',
       priority: 'Medium',
       subtasks: [],
@@ -98,12 +101,14 @@ export function CreateTaskDialog({
       form.reset(task ? {
         title: task.title,
         description: task.description,
+        accountManager: task.accountManager || '',
         status: task.status,
         priority: task.priority,
         subtasks: task.subtasks || [],
       } : {
         title: '',
         description: '',
+        accountManager: '',
         status: 'To-Do',
         priority: 'Medium',
         subtasks: [],
@@ -125,7 +130,7 @@ export function CreateTaskDialog({
   };
 
   const handleBreakdown = async () => {
-    const { title, description, priority } = form.getValues();
+    const { title, description, priority, accountManager } = form.getValues();
 
     if (!title) {
       form.setError('title', { message: 'Please enter an Account/Project before breaking down.' });
@@ -140,18 +145,23 @@ export function CreateTaskDialog({
     try {
       const result = await breakdownTask({ taskDescription: description });
 
-      const tasksToAdd: Task[] = result.subtasks.map((taskDescription) => ({
-        id: `TASK-${Math.floor(Math.random() * 9000) + 1000}`,
+      const tasksToAdd: Omit<Task, 'id' | 'createdAt' | 'status'>[] = result.subtasks.map((taskDescription) => ({
         title: title,
         description: taskDescription,
-        status: 'To-Do',
+        accountManager: accountManager,
         priority: priority,
-        createdAt: new Date().toISOString(),
         subtasks: [],
       }));
 
       if (tasksToAdd.length > 0) {
-        addBulkTasks(tasksToAdd);
+        // Since addBulkTasks takes full Task objects, we need to create them
+        const newTasks: Task[] = tasksToAdd.map(task => ({
+            ...task,
+            id: `TASK-${Math.floor(Math.random() * 9000) + 1000}`,
+            createdAt: new Date().toISOString(),
+            status: 'To-Do'
+        }))
+        addBulkTasks(newTasks);
         toast({
           title: 'Tasks Generated',
           description: `${tasksToAdd.length} tasks were created from your description.`,
@@ -204,6 +214,19 @@ export function CreateTaskDialog({
                   <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Add a detailed description for the AI to break down..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="accountManager"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Account Manager / AM</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., John Doe" {...field} value={field.value ?? ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
