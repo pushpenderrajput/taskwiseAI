@@ -174,7 +174,7 @@ export function CreateTaskDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{task ? 'Edit Task' : 'Create Task'}</DialogTitle>
           <DialogDescription>
