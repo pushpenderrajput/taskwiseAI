@@ -86,10 +86,10 @@ export function TaskCard({ task }: TaskCardProps) {
           }
         )}
       >
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3">
           <CardTitle
             className={cn(
-              'text-base font-medium',
+              'text-sm font-medium',
               task.status === 'Completed' &&
                 'line-through text-muted-foreground'
             )}
@@ -118,9 +118,9 @@ export function TaskCard({ task }: TaskCardProps) {
             </DropdownMenuContent>
           </DropdownMenu>
         </CardHeader>
-        <CardContent className="flex-grow p-4 pt-0">
+        <CardContent className="flex-grow p-3 pt-0">
           {task.description && (
-            <p className="mb-4 text-sm text-muted-foreground">
+            <p className="mb-2 text-sm text-muted-foreground">
               {task.description}
             </p>
           )}
@@ -150,7 +150,7 @@ export function TaskCard({ task }: TaskCardProps) {
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-wrap items-center gap-2 p-4 pt-2">
+        <CardFooter className="flex flex-wrap items-center gap-2 p-3 pt-2">
           {task.status !== 'Completed' ? (
             <>
               <Button
