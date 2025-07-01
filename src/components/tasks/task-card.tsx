@@ -14,17 +14,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   MoreHorizontal,
   Edit,
   Trash2,
-  CheckCircle2,
-  Circle,
-  Clock,
-  ChevronUp,
-  ChevronsUp,
-  SignalLow,
   Calendar,
   CheckCheck,
   CopyPlus,
@@ -35,28 +30,20 @@ import { useTaskStore } from '@/store/tasks';
 import { cn } from '@/lib/utils';
 import { CreateTaskDialog } from './create-task-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { statuses, priorities } from '@/config/tasks';
 
 interface TaskCardProps {
   task: Task;
 }
-
-const statusIcons: Record<Task['status'], React.ReactNode> = {
-  'To-Do': <Circle className="h-4 w-4 text-muted-foreground" />,
-  'In Progress': <Clock className="h-4 w-4 text-primary" />,
-  Completed: <CheckCircle2 className="h-4 w-4 text-chart-2" />,
-};
-
-const priorityIcons: Record<Task['priority'], React.ReactNode> = {
-  High: <ChevronsUp className="h-4 w-4 text-destructive" />,
-  Medium: <ChevronUp className="h-4 w-4 text-chart-4" />,
-  Low: <SignalLow className="h-4 w-4 text-chart-2" />,
-};
 
 export function TaskCard({ task }: TaskCardProps) {
   const { deleteTask, updateTask, completeAndCarryForward, followUp } =
     useTaskStore();
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  const status = statuses.find((s) => s.value === task.status);
+  const priority = priorities.find((p) => p.value === task.priority);
 
   const handleDelete = () => {
     deleteTask(task.id);
@@ -138,15 +125,17 @@ export function TaskCard({ task }: TaskCardProps) {
             </p>
           )}
           <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1" title={task.status}>
-                {statusIcons[task.status]}
-                <span className="hidden sm:inline">{task.status}</span>
-              </div>
-              <div className="flex items-center gap-1" title={task.priority}>
-                {priorityIcons[task.priority]}
-                <span className="hidden sm:inline">{task.priority}</span>
-              </div>
+            <div className="flex items-center gap-2">
+              {status && (
+                <Badge variant="outline" className={cn(status.className)}>
+                  {status.label}
+                </Badge>
+              )}
+              {priority && (
+                <Badge variant="outline" className={cn(priority.className)}>
+                  {priority.label}
+                </Badge>
+              )}
             </div>
             <div
               className="flex items-center gap-1"

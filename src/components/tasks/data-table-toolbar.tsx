@@ -4,7 +4,7 @@ import { Table } from '@tanstack/react-table';
 import { Input } from '@/components/ui/input';
 import { DataTableViewOptions } from './data-table';
 import { Button } from '@/components/ui/button';
-import { X, Circle, Clock, CheckCircle2, SignalLow, SignalMedium, ChevronsUp, PlusCircle } from 'lucide-react';
+import { X, PlusCircle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -12,22 +12,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { statuses, priorities } from '@/config/tasks';
+
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
 }
-
-const statuses = [
-    { value: 'To-Do', label: 'To-Do', icon: Circle },
-    { value: 'In Progress', label: 'In Progress', icon: Clock },
-    { value: 'Completed', label: 'Completed', icon: CheckCircle2 },
-  ];
-  
-  const priorities = [
-    { value: 'Low', label: 'Low', icon: SignalLow },
-    { value: 'Medium', label: 'Medium', icon: SignalMedium },
-    { value: 'High', label: 'High', icon: ChevronsUp },
-  ];
 
 export function DataTableToolbar<TData>({
   table,

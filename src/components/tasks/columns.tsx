@@ -6,47 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from './data-table';
 import { DataTableRowActions } from './data-table-row-actions';
-import {
-  Circle,
-  Clock,
-  CheckCircle2,
-  SignalLow,
-  SignalMedium,
-  ChevronsUp,
-} from 'lucide-react';
+import { statuses, priorities } from '@/config/tasks';
 import { cn } from '@/lib/utils';
-
-const statuses = [
-  {
-    value: 'To-Do',
-    label: 'To-Do',
-    icon: Circle,
-    color: 'text-muted-foreground',
-  },
-  {
-    value: 'In Progress',
-    label: 'In Progress',
-    icon: Clock,
-    color: 'text-primary',
-  },
-  {
-    value: 'Completed',
-    label: 'Completed',
-    icon: CheckCircle2,
-    color: 'text-chart-2',
-  },
-];
-
-const priorities = [
-  { value: 'Low', label: 'Low', icon: SignalLow, color: 'text-chart-2' },
-  {
-    value: 'Medium',
-    label: 'Medium',
-    icon: SignalMedium,
-    color: 'text-chart-4',
-  },
-  { value: 'High', label: 'High', icon: ChevronsUp, color: 'text-destructive' },
-];
 
 export const columns: ColumnDef<Task>[] = [
   {
@@ -108,12 +69,12 @@ export const columns: ColumnDef<Task>[] = [
       }
 
       return (
-        <div className="flex w-[100px] items-center">
-          {status.icon && (
-            <status.icon className={cn('mr-2 h-4 w-4', status.color)} />
-          )}
-          <span>{status.label}</span>
-        </div>
+        <Badge
+          variant="outline"
+          className={cn('w-[100px] justify-center', status.className)}
+        >
+          {status.label}
+        </Badge>
       );
     },
     filterFn: (row, id, value) => {
@@ -135,12 +96,12 @@ export const columns: ColumnDef<Task>[] = [
       }
 
       return (
-        <div className="flex items-center">
-          {priority.icon && (
-            <priority.icon className={cn('mr-2 h-4 w-4', priority.color)} />
-          )}
-          <span>{priority.label}</span>
-        </div>
+        <Badge
+          variant="outline"
+          className={cn('w-[100px] justify-center', priority.className)}
+        >
+          {priority.label}
+        </Badge>
       );
     },
     filterFn: (row, id, value) => {

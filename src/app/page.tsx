@@ -26,14 +26,18 @@ export default function DashboardPage() {
             New Task
           </Button>
         </Header>
-        <main className="grid gap-8 lg:grid-cols-2">
-          <div className="space-y-4">
+        <main className="grid flex-1 gap-8 lg:grid-cols-2">
+          <div className="flex flex-col space-y-4">
             <h2 className="text-2xl font-bold tracking-tight">To-Do</h2>
-            <TaskList tasks={todoTasks} />
+            <div className="h-[calc(100vh-17rem)] space-y-4 overflow-y-auto rounded-lg border bg-background/50 p-4">
+              <TaskList tasks={todoTasks} />
+            </div>
           </div>
-          <div className="space-y-4">
+          <div className="flex flex-col space-y-4">
             <h2 className="text-2xl font-bold tracking-tight">Completed</h2>
-            <TaskList tasks={completedTasks} />
+            <div className="h-[calc(100vh-17rem)] space-y-4 overflow-y-auto rounded-lg border bg-background/50 p-4">
+              <TaskList tasks={completedTasks} />
+            </div>
           </div>
         </main>
       </div>
