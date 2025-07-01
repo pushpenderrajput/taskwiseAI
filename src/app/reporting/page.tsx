@@ -37,6 +37,25 @@ export default function ReportingPage() {
 
   const tasksForSummary = getFilteredTasks(activeTab);
 
+  const getPeriodDates = (period: string) => {
+    const endDate = now;
+    let startDate: Date;
+    switch (period) {
+      case 'weekly':
+        startDate = subDays(now, 7);
+        break;
+      case 'monthly':
+        startDate = subDays(now, 30);
+        break;
+      case 'yearly':
+        startDate = subDays(now, 365);
+        break;
+      default:
+        startDate = now;
+    }
+    return { startDate, endDate };
+  }
+
   const handleSummarize = async () => {
     setSummary('');
     if (tasksForSummary.length === 0) {
@@ -45,12 +64,21 @@ export default function ReportingPage() {
     }
 
     setIsAiLoading(true);
-    const reportContent = tasksForSummary
-      .map(t => `- ${t.title} (Priority: ${t.priority})`)
-      .join('\n');
+    const { startDate, endDate } = getPeriodDates(activeTab);
+
+    const reportData = {
+      tasks: tasksForSummary.map(t => ({
+        title: t.title,
+        description: t.description,
+        priority: t.priority,
+        completedAt: new Date(t.completedAt!).toISOString(),
+      })),
+      startDate: startDate.toLocaleDateString(),
+      endDate: endDate.toLocaleDateString(),
+    };
     
     try {
-      const result = await summarizeReport({ reportContent });
+      const result = await summarizeReport(reportData);
       setSummary(result.summary);
       toast({ title: 'Summary Generated', description: 'AI has summarized the report for you.' });
     } catch (error) {
@@ -73,11 +101,16 @@ export default function ReportingPage() {
         </CardHeader>
         <CardContent>
           {filteredTasks.length > 0 ? (
-            <ul className="space-y-2">
+            <ul className="space-y-4">
               {filteredTasks.map((task) => (
-                <li key={task.id} className="text-sm">
-                  <span className="font-medium">{task.title}</span> - Completed on{' '}
-                  {new Date(task.completedAt!).toLocaleDateString()}
+                <li key={task.id} className="border-b pb-4 last:border-b-0 last:pb-0">
+                  <p className="font-semibold">{task.title}</p>
+                  {task.description && (
+                    <p className="mt-1 text-sm text-muted-foreground">{task.description}</p>
+                  )}
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Completed on: {new Date(task.completedAt!).toLocaleDateString()}
+                  </p>
                 </li>
               ))}
             </ul>
@@ -109,11 +142,24 @@ export default function ReportingPage() {
         <Alert>
           <Wand2 className="h-4 w-4" />
           <AlertTitle>AI Summary</AlertTitle>
-          <AlertDescription>{summary}</AlertDescription>
+          <AlertDescription>
+            <div>
+              {summary.split('\n').map((line, i) => (
+                <div key={i} className={line.trim() === '' ? 'h-2' : ''}>
+                  {line.split('**').map((part, j) =>
+                    j % 2 === 1 ? <strong key={j}>{part}</strong> : <span key={j}>{part}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </AlertDescription>
         </Alert>
       )}
 
-      <Tabs defaultValue="weekly" className="space-y-4" onValueChange={setActiveTab}>
+      <Tabs defaultValue="weekly" className="space-y-4" onValueChange={(value) => {
+        setActiveTab(value);
+        setSummary('');
+      }}>
         <TabsList>
           <TabsTrigger value="weekly">Weekly</TabsTrigger>
           <TabsTrigger value="monthly">Monthly</TabsTrigger>
