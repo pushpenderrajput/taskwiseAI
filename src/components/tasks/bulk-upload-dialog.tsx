@@ -84,7 +84,7 @@ export function BulkUploadDialog({ open, onOpenChange }: BulkUploadDialogProps) 
       const reader = new FileReader();
       reader.onload = (e) => {
         const text = e.target?.result as string;
-        processCsv(text);
+        setCsvData(text);
       };
       reader.readAsText(file);
     }
