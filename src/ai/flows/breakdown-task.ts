@@ -33,11 +33,12 @@ const prompt = ai.definePrompt({
   name: 'breakdownTaskPrompt',
   input: {schema: BreakdownTaskInputSchema},
   output: {schema: BreakdownTaskOutputSchema},
-  prompt: `You are a project management assistant.  Your job is to break down a high-level task description into smaller, more manageable subtasks.  These subtasks should be specific and actionable.
+  prompt: `You are a project management assistant. Your job is to break down a high-level task description into a list of smaller, more manageable subtasks. These subtasks should be specific and actionable.
+
+Provide your response as a JSON object that adheres to the defined output schema.
 
 Task Description: {{{taskDescription}}}
-
-Subtasks:`,
+`,
 });
 
 const breakdownTaskFlow = ai.defineFlow(

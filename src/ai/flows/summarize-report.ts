@@ -33,12 +33,12 @@ const summarizeReportPrompt = ai.definePrompt({
   output: {schema: SummarizeReportOutputSchema},
   prompt: `You are an AI assistant tasked with summarizing reports of completed tasks.
 
-  Please provide a concise and insightful summary of the following report:
+  Please provide a concise and insightful summary of the following report.
+
+  Provide your response as a JSON object that adheres to the defined output schema.
 
   Report Content:
   {{reportContent}}
-
-  Summary:
   `,
 });
 
