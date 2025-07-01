@@ -4,7 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Task } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DataTableColumnHeader } from './data-table-column-header';
+import { DataTableColumnHeader } from './data-table';
 import { DataTableRowActions } from './data-table-row-actions';
 import {
   Circle,
