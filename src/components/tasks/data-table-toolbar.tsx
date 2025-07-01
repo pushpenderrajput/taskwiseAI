@@ -5,7 +5,13 @@ import { Input } from '@/components/ui/input';
 import { DataTableViewOptions } from './data-table';
 import { Button } from '@/components/ui/button';
 import { X, Circle, Clock, CheckCircle2, SignalLow, SignalMedium, ChevronsUp, PlusCircle } from 'lucide-react';
-import { DataTableFacetedFilter } from './data-table-faceted-filter';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -163,4 +169,3 @@ interface DataTableFacetedFilterProps<TData, TValue> {
       </DropdownMenu>
     )
   }
-  
