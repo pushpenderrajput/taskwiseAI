@@ -123,6 +123,11 @@ export function TaskCard({ task }: TaskCardProps) {
           </DropdownMenu>
         </CardHeader>
         <CardContent className="flex-grow p-2 pt-0">
+          {task.accountManager && (
+            <p className="mb-1 text-sm text-muted-foreground">
+              {task.accountManager}
+            </p>
+          )}
           {task.description && (
             <p className="mb-1 text-sm text-muted-foreground">
               {task.description}
