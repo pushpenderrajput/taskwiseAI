@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { breakdownTask } from '@/ai/flows/breakdown-task';
-import { useTaskStore } from '@/store/tasks';
+import { addTask, updateTask, addBulkTasks } from '@/actions/tasks';
 import { Task, Subtask } from '@/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -66,7 +66,6 @@ export function CreateTaskDialog({
   onOpenChange,
   task,
 }: CreateTaskDialogProps) {
-  const { addTask, updateTask, addBulkTasks } = useTaskStore();
   const { toast } = useToast();
   const [isAiLoading, setIsAiLoading] = useState(false);
 
@@ -93,38 +92,47 @@ export function CreateTaskDialog({
     });
     onOpenChange(false);
   };
-  
+
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
       handleClose();
     } else {
-      form.reset(task ? {
-        title: task.title,
-        description: task.description,
-        accountManager: task.accountManager || '',
-        status: task.status,
-        priority: task.priority,
-        subtasks: task.subtasks || [],
-      } : {
-        title: '',
-        description: '',
-        accountManager: '',
-        status: 'To-Do',
-        priority: 'Medium',
-        subtasks: [],
-      });
+      form.reset(
+        task
+          ? {
+              title: task.title,
+              description: task.description,
+              accountManager: task.accountManager || '',
+              status: task.status,
+              priority: task.priority,
+              subtasks: task.subtasks || [],
+            }
+          : {
+              title: '',
+              description: '',
+              accountManager: '',
+              status: 'To-Do',
+              priority: 'Medium',
+              subtasks: [],
+            }
+      );
       onOpenChange(true);
     }
   };
 
-
-  const onSubmit = (data: TaskFormValues) => {
+  const onSubmit = async (data: TaskFormValues) => {
     if (task) {
-      updateTask(task.id, data);
-      toast({ title: 'Task Updated', description: 'The task has been successfully updated.' });
+      await updateTask(task.id, data);
+      toast({
+        title: 'Task Updated',
+        description: 'The task has been successfully updated.',
+      });
     } else {
-      addTask(data);
-      toast({ title: 'Task Created', description: 'A new task has been successfully added.' });
+      await addTask(data);
+      toast({
+        title: 'Task Created',
+        description: 'A new task has been successfully added.',
+      });
     }
     handleClose();
   };
@@ -133,11 +141,15 @@ export function CreateTaskDialog({
     const { title, description, priority, accountManager } = form.getValues();
 
     if (!title) {
-      form.setError('title', { message: 'Please enter an Account/Project before breaking down.' });
+      form.setError('title', {
+        message: 'Please enter an Account/Project before breaking down.',
+      });
       return;
     }
     if (!description) {
-      form.setError('description', { message: 'Please enter a description to break down.' });
+      form.setError('description', {
+        message: 'Please enter a description to break down.',
+      });
       return;
     }
 
@@ -145,23 +157,19 @@ export function CreateTaskDialog({
     try {
       const result = await breakdownTask({ taskDescription: description });
 
-      const tasksToAdd: Omit<Task, 'id' | 'createdAt' | 'status'>[] = result.subtasks.map((taskDescription) => ({
-        title: title,
-        description: taskDescription,
-        accountManager: accountManager,
-        priority: priority,
-        subtasks: [],
-      }));
-
-      if (tasksToAdd.length > 0) {
-        // Since addBulkTasks takes full Task objects, we need to create them
-        const newTasks: Task[] = tasksToAdd.map(task => ({
-            ...task,
-            id: `TASK-${Math.floor(Math.random() * 9000) + 1000}`,
+      if (result.subtasks && result.subtasks.length > 0) {
+        const tasksToAdd: Omit<Task, 'id'>[] = result.subtasks.map(
+          (taskDescription) => ({
+            title: title,
+            description: taskDescription,
+            accountManager: accountManager,
+            priority: priority,
+            status: 'To-Do',
             createdAt: new Date().toISOString(),
-            status: 'To-Do'
-        }))
-        addBulkTasks(newTasks);
+          })
+        );
+        
+        await addBulkTasks(tasksToAdd);
         toast({
           title: 'Tasks Generated',
           description: `${tasksToAdd.length} tasks were created from your description.`,
@@ -171,12 +179,18 @@ export function CreateTaskDialog({
         toast({
           variant: 'destructive',
           title: 'No tasks generated',
-          description: 'The AI could not break down the description into tasks.',
+          description:
+            'The AI could not break down the description into tasks.',
         });
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to generate tasks.';
-      toast({ variant: 'destructive', title: 'AI Error', description: errorMessage });
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to generate tasks.';
+      toast({
+        variant: 'destructive',
+        title: 'AI Error',
+        description: errorMessage,
+      });
     } finally {
       setIsAiLoading(false);
     }
@@ -188,7 +202,9 @@ export function CreateTaskDialog({
         <DialogHeader>
           <DialogTitle>{task ? 'Edit Task' : 'Create Task'}</DialogTitle>
           <DialogDescription>
-            {task ? 'Update the details of your task.' : 'Add a new task to your list, or break down a large one with AI.'}
+            {task
+              ? 'Update the details of your task.'
+              : 'Add a new task to your list, or break down a large one with AI.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -200,7 +216,10 @@ export function CreateTaskDialog({
                 <FormItem>
                   <FormLabel>Account/Project</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Acme Corp Q3 Campaign" {...field} />
+                    <Input
+                      placeholder="e.g., Acme Corp Q3 Campaign"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -213,20 +232,27 @@ export function CreateTaskDialog({
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Add a detailed description for the AI to break down..." {...field} />
+                    <Textarea
+                      placeholder="Add a detailed description for the AI to break down..."
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-             <FormField
+            <FormField
               control={form.control}
               name="accountManager"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Account Manager / AM</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., John Doe" {...field} value={field.value ?? ''} />
+                    <Input
+                      placeholder="e.g., John Doe"
+                      {...field}
+                      value={field.value ?? ''}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -239,7 +265,10 @@ export function CreateTaskDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select status" />
@@ -261,7 +290,10 @@ export function CreateTaskDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Priority</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select priority" />
@@ -286,19 +318,21 @@ export function CreateTaskDialog({
               </div>
               <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
                 {form.watch('subtasks')?.map((subtask, index) => (
-                   <FormField
+                  <FormField
                     key={subtask.id}
                     control={form.control}
                     name={`subtasks.${index}.completed`}
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-3">
                         <FormControl>
-                           <Checkbox
+                          <Checkbox
                             checked={field.value}
                             onCheckedChange={field.onChange}
                           />
                         </FormControl>
-                        <FormLabel className="font-normal flex-1">{form.getValues(`subtasks.${index}.title`)}</FormLabel>
+                        <FormLabel className="font-normal flex-1">
+                          {form.getValues(`subtasks.${index}.title`)}
+                        </FormLabel>
                       </FormItem>
                     )}
                   />
@@ -307,7 +341,13 @@ export function CreateTaskDialog({
             </div>
 
             <DialogFooter className="sm:justify-between">
-              <Button type="button" variant="outline" size="sm" onClick={handleBreakdown} disabled={isAiLoading}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleBreakdown}
+                disabled={isAiLoading}
+              >
                 {isAiLoading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (

@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, Edit, Trash2 } from 'lucide-react';
-import { useTaskStore } from '@/store/tasks';
+import { deleteTask } from '@/actions/tasks';
 import { Task } from '@/types';
 import { CreateTaskDialog } from './create-task-dialog';
 
@@ -22,7 +22,6 @@ export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
   const task = row.original as Task;
-  const deleteTask = useTaskStore((state) => state.deleteTask);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
 
   return (

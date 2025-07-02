@@ -26,7 +26,12 @@ import {
   MessageSquarePlus,
   Undo2,
 } from 'lucide-react';
-import { useTaskStore } from '@/store/tasks';
+import {
+  deleteTask,
+  updateTask,
+  completeAndCarryForward,
+  followUp,
+} from '@/actions/tasks';
 import { cn } from '@/lib/utils';
 import { CreateTaskDialog } from './create-task-dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -37,36 +42,35 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task }: TaskCardProps) {
-  const { deleteTask, updateTask, completeAndCarryForward, followUp } =
-    useTaskStore();
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const status = statuses.find((s) => s.value === task.status);
   const priority = priorities.find((p) => p.value === task.priority);
 
-  const handleDelete = () => {
-    deleteTask(task.id);
+  const handleDelete = async () => {
+    await deleteTask(task.id);
+    toast({ title: 'Task deleted' });
   };
 
-  const handleStatusChange = (status: TaskStatus) => {
-    updateTask(task.id, { status });
+  const handleStatusChange = async (status: TaskStatus) => {
+    await updateTask(task.id, { status });
     toast({
       title: `Task status updated`,
       description: `"${task.title}" marked as ${status}.`,
     });
   };
 
-  const handleCarryForward = () => {
-    completeAndCarryForward(task.id);
+  const handleCarryForward = async () => {
+    await completeAndCarryForward(task.id);
     toast({
       title: 'Task Completed & Carried Forward',
       description: `A new task has been created for "${task.title}".`,
     });
   };
 
-  const handleFollowUp = () => {
-    followUp(task.id);
+  const handleFollowUp = async () => {
+    await followUp(task.id);
     toast({
       title: 'Follow-up Created',
       description: `A new follow-up task has been created for "${task.title}".`,
@@ -127,13 +131,19 @@ export function TaskCard({ task }: TaskCardProps) {
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               {status && (
-                <Badge variant="outline" className={cn('gap-1.5', status.className)}>
+                <Badge
+                  variant="outline"
+                  className={cn('gap-1.5', status.className)}
+                >
                   {status.icon && <status.icon className="h-3 w-3" />}
                   {status.label}
                 </Badge>
               )}
               {priority && (
-                <Badge variant="outline" className={cn('gap-1.5', priority.className)}>
+                <Badge
+                  variant="outline"
+                  className={cn('gap-1.5', priority.className)}
+                >
                   {priority.icon && <priority.icon className="h-3 w-3" />}
                   {priority.label}
                 </Badge>
@@ -171,7 +181,10 @@ export function TaskCard({ task }: TaskCardProps) {
                 <CopyPlus />
                 Carry Forward
               </Button>
-              <Button variant="outline" size="xs" onClick={handleFollowUp}
+              <Button
+                variant="outline"
+                size="xs"
+                onClick={handleFollowUp}
                 className="border-accent/50 bg-accent/10 text-accent hover:bg-accent/20 hover:text-accent"
               >
                 <MessageSquarePlus />

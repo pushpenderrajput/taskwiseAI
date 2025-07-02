@@ -1,7 +1,6 @@
 'use client';
 import { useState } from 'react';
 import Papa from 'papaparse';
-import { useTaskStore } from '@/store/tasks';
 import { Task } from '@/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { addBulkTasks } from '@/actions/tasks';
 
 interface BulkUploadDialogProps {
   open: boolean;
@@ -24,7 +24,6 @@ interface BulkUploadDialogProps {
 }
 
 export function BulkUploadDialog({ open, onOpenChange }: BulkUploadDialogProps) {
-  const { addBulkTasks } = useTaskStore();
   const { toast } = useToast();
   const [csvData, setCsvData] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -39,31 +38,35 @@ export function BulkUploadDialog({ open, onOpenChange }: BulkUploadDialogProps) 
     Papa.parse(data, {
       header: true,
       skipEmptyLines: true,
-      complete: (results) => {
-        const newTasks: Task[] = results.data
+      complete: async (results) => {
+        const newTasks: Omit<Task, 'id'>[] = results.data
           .map((item: any) => ({
-            id: `TASK-${Math.floor(Math.random() * 9000) + 1000}`,
             title: item.title || 'Untitled Task',
             description: item.description || '',
             accountManager: item.accountManager || '',
-            status: ['To-Do', 'In Progress', 'Completed'].includes(item.status) ? item.status : 'To-Do',
-            priority: ['Low', 'Medium', 'High'].includes(item.priority) ? item.priority : 'Medium',
+            status: ['To-Do', 'In Progress', 'Completed'].includes(item.status)
+              ? item.status
+              : 'To-Do',
+            priority: ['Low', 'Medium', 'High'].includes(item.priority)
+              ? item.priority
+              : 'Medium',
             createdAt: new Date().toISOString(),
           }))
           .filter((task) => task.title !== 'Untitled Task');
 
         if (newTasks.length > 0) {
-          addBulkTasks(newTasks);
+          await addBulkTasks(newTasks);
           toast({
             title: 'Bulk Upload Successful',
             description: `${newTasks.length} tasks have been added.`,
           });
         } else {
-            toast({
-                variant: 'destructive',
-                title: 'Bulk Upload Failed',
-                description: 'No valid tasks found. Make sure you have a "title" column in your CSV.',
-            });
+          toast({
+            variant: 'destructive',
+            title: 'Bulk Upload Failed',
+            description:
+              'No valid tasks found. Make sure you have a "title" column in your CSV.',
+          });
         }
         setIsLoading(false);
         handleClose();
@@ -93,10 +96,9 @@ export function BulkUploadDialog({ open, onOpenChange }: BulkUploadDialogProps) 
 
   const handleSubmit = () => {
     if (csvData) {
-        processCsv(csvData);
+      processCsv(csvData);
     }
-  }
-
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -104,25 +106,32 @@ export function BulkUploadDialog({ open, onOpenChange }: BulkUploadDialogProps) 
         <DialogHeader>
           <DialogTitle>Bulk Upload Tasks</DialogTitle>
           <DialogDescription>
-            Paste CSV data below or upload a CSV file. The file must contain a 'title' column. Optional columns: 'description', 'accountManager', 'status', 'priority'.
+            Paste CSV data below or upload a CSV file. The file must contain a
+            'title' column. Optional columns: 'description', 'accountManager',
+            'status', 'priority'.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-            <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label htmlFor="csv-file">Upload CSV File</Label>
-                <Input id="csv-file" type="file" accept=".csv" onChange={handleFileUpload} />
-            </div>
-            <div className="text-center text-sm text-muted-foreground">OR</div>
-            <div className="grid w-full gap-1.5">
-                <Label htmlFor="csv-text">Paste CSV Data</Label>
-                <Textarea
-                    id="csv-text"
-                    placeholder="title,description,accountManager,status,priority&#10;My first task,Details here,John Doe,To-Do,High"
-                    value={csvData}
-                    onChange={(e) => setCsvData(e.target.value)}
-                    rows={8}
-                />
-            </div>
+          <div className="grid w-full max-w-sm items-center gap-1.5">
+            <Label htmlFor="csv-file">Upload CSV File</Label>
+            <Input
+              id="csv-file"
+              type="file"
+              accept=".csv"
+              onChange={handleFileUpload}
+            />
+          </div>
+          <div className="text-center text-sm text-muted-foreground">OR</div>
+          <div className="grid w-full gap-1.5">
+            <Label htmlFor="csv-text">Paste CSV Data</Label>
+            <Textarea
+              id="csv-text"
+              placeholder="title,description,accountManager,status,priority&#10;My first task,Details here,John Doe,To-Do,High"
+              value={csvData}
+              onChange={(e) => setCsvData(e.target.value)}
+              rows={8}
+            />
+          </div>
         </div>
         <DialogFooter>
           <Button type="button" variant="ghost" onClick={handleClose}>
