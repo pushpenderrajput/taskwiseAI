@@ -10,15 +10,26 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { subDays, format, startOfDay, endOfDay } from 'date-fns';
 import { summarizeReport } from '@/ai/flows/summarize-report';
 import { Loader2, Wand2, Copy, Calendar as CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { DateRange } from 'react-day-picker';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 const ReportContent = ({
@@ -151,6 +162,15 @@ export function ReportingClient({ allTasks }: ReportingClientProps) {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('weekly');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [selectedManager, setSelectedManager] = useState('all');
+
+  const accountManagers = [
+    'all',
+    ...Array.from(
+      new Set(allTasks.filter((t) => t.accountManager).map((t) => t.accountManager!))
+    ),
+  ];
+
 
   useEffect(() => {
     if (dateRange?.from) {
@@ -165,35 +185,46 @@ export function ReportingClient({ allTasks }: ReportingClientProps) {
 
   const getFilteredTasks = (period: string, range?: DateRange): Task[] => {
     const now = new Date();
+    let dateFilteredTasks: Task[];
+
     if (range?.from) {
       const from = startOfDay(range.from);
       const to = range.to ? endOfDay(range.to) : endOfDay(range.from);
-      return completedTasks.filter((t) => {
+      dateFilteredTasks = completedTasks.filter((t) => {
         const completedDate = new Date(t.completedAt!);
         return completedDate >= from && completedDate <= to;
       });
+    } else {
+      switch (period) {
+        case 'daily':
+          dateFilteredTasks = completedTasks.filter(
+            (t) => new Date(t.completedAt!) >= subDays(now, 1)
+          );
+          break;
+        case 'weekly':
+          dateFilteredTasks = completedTasks.filter(
+            (t) => new Date(t.completedAt!) >= subDays(now, 7)
+          );
+          break;
+        case 'monthly':
+          dateFilteredTasks = completedTasks.filter(
+            (t) => new Date(t.completedAt!) >= subDays(now, 30)
+          );
+          break;
+        case 'yearly':
+          dateFilteredTasks = completedTasks.filter(
+            (t) => new Date(t.completedAt!) >= subDays(now, 365)
+          );
+          break;
+        default:
+          dateFilteredTasks = [];
+      }
     }
-
-    switch (period) {
-      case 'daily':
-        return completedTasks.filter(
-          (t) => new Date(t.completedAt!) >= subDays(now, 1)
-        );
-      case 'weekly':
-        return completedTasks.filter(
-          (t) => new Date(t.completedAt!) >= subDays(now, 7)
-        );
-      case 'monthly':
-        return completedTasks.filter(
-          (t) => new Date(t.completedAt!) >= subDays(now, 30)
-        );
-      case 'yearly':
-        return completedTasks.filter(
-          (t) => new Date(t.completedAt!) >= subDays(now, 365)
-        );
-      default:
-        return [];
+    
+    if (selectedManager === 'all') {
+      return dateFilteredTasks;
     }
+    return dateFilteredTasks.filter((t) => t.accountManager === selectedManager);
   };
 
   const tasksForSummary = getFilteredTasks(activeTab, dateRange);
@@ -246,6 +277,7 @@ export function ReportingClient({ allTasks }: ReportingClientProps) {
       })),
       startDate: startDate.toLocaleDateString(),
       endDate: endDate.toLocaleDateString(),
+      accountManager: selectedManager !== 'all' ? selectedManager : undefined,
     };
 
     try {
@@ -370,6 +402,27 @@ export function ReportingClient({ allTasks }: ReportingClientProps) {
             />
           </PopoverContent>
         </Popover>
+        <Select
+          value={selectedManager}
+          onValueChange={(value) => {
+            setSelectedManager(value);
+            setSummary('');
+          }}
+        >
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Account Manager" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Managers</SelectItem>
+            {accountManagers
+              .filter((m) => m !== 'all')
+              .map((manager) => (
+                <SelectItem key={manager} value={manager}>
+                  {manager}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <ReportContent
