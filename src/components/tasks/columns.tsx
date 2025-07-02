@@ -35,9 +35,12 @@ export const columns: ColumnDef<Task>[] = [
   {
     accessorKey: 'id',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Task" />
+      <DataTableColumnHeader column={column} title="Task ID" />
     ),
-    cell: ({ row }) => <div className="w-[80px]">{row.getValue('id')}</div>,
+    cell: ({ row }) => {
+      const id = row.getValue('id') as string;
+      return <div className="w-[80px]">...{id.slice(-6)}</div>;
+    },
   },
   {
     accessorKey: 'title',

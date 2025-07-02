@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { breakdownTask } from '@/ai/flows/breakdown-task';
-import { addTask, updateTask, addBulkTasks } from '@/actions/tasks';
+import { addTask, updateTask } from '@/actions/tasks';
 import { Task, Subtask } from '@/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -138,17 +138,11 @@ export function CreateTaskDialog({
   };
 
   const handleBreakdown = async () => {
-    const { title, description, priority, accountManager } = form.getValues();
+    const description = form.getValues('description');
 
-    if (!title) {
-      form.setError('title', {
-        message: 'Please enter an Account/Project before breaking down.',
-      });
-      return;
-    }
     if (!description) {
       form.setError('description', {
-        message: 'Please enter a description to break down.',
+        message: 'Please enter a description for the AI to break down.',
       });
       return;
     }
@@ -158,34 +152,28 @@ export function CreateTaskDialog({
       const result = await breakdownTask({ taskDescription: description });
 
       if (result.subtasks && result.subtasks.length > 0) {
-        const tasksToAdd: Omit<Task, 'id'>[] = result.subtasks.map(
-          (taskDescription) => ({
-            title: title,
-            description: taskDescription,
-            accountManager: accountManager,
-            priority: priority,
-            status: 'To-Do',
-            createdAt: new Date().toISOString(),
-          })
-        );
-        
-        await addBulkTasks(tasksToAdd);
+        const newSubtasks: Subtask[] = result.subtasks.map((subtaskTitle) => ({
+          id: `sub-${Date.now()}-${Math.random()}`,
+          title: subtaskTitle,
+          completed: false,
+        }));
+
+        form.setValue('subtasks', newSubtasks);
         toast({
-          title: 'Tasks Generated',
-          description: `${tasksToAdd.length} tasks were created from your description.`,
+          title: 'Subtasks Generated',
+          description: `${newSubtasks.length} subtasks were created. Review and save your task.`,
         });
-        handleClose();
       } else {
         toast({
           variant: 'destructive',
-          title: 'No tasks generated',
+          title: 'No subtasks generated',
           description:
-            'The AI could not break down the description into tasks.',
+            'The AI could not break down the description into subtasks.',
         });
       }
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Failed to generate tasks.';
+        error instanceof Error ? error.message : 'Failed to generate subtasks.';
       toast({
         variant: 'destructive',
         title: 'AI Error',
@@ -204,7 +192,7 @@ export function CreateTaskDialog({
           <DialogDescription>
             {task
               ? 'Update the details of your task.'
-              : 'Add a new task to your list, or break down a large one with AI.'}
+              : 'Add a new task, or break down a large one into subtasks with AI.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -353,7 +341,7 @@ export function CreateTaskDialog({
                 ) : (
                   <Wand2 className="mr-2 h-4 w-4" />
                 )}
-                Break down into Tasks
+                Break down into Subtasks
               </Button>
               <div className="flex gap-2">
                 <Button type="button" variant="ghost" onClick={handleClose}>
