@@ -205,7 +205,7 @@ export function CreateTaskDialog({
                   <FormLabel>Account/Project</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g., Acme Corp Q3 Campaign"
+                      placeholder="e.g., Airtel, Internal Project"
                       {...field}
                     />
                   </FormControl>
@@ -237,7 +237,7 @@ export function CreateTaskDialog({
                   <FormLabel>Account Manager / AM</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g., John Doe"
+                      placeholder="e.g., Aadil Dua"
                       {...field}
                       value={field.value ?? ''}
                     />
