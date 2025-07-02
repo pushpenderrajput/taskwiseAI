@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import clientPromise from '@/lib/mongodb';
 import { Task, Subtask, TaskStatus, TaskPriority } from '@/types';
-import { Collection, ObjectId, WithId } from 'mongodb';
+import { Collection, ObjectId, WithId, UpdateFilter } from 'mongodb';
 
 type MongoTask = WithId<Omit<Task, 'id'>>;
 
@@ -53,19 +53,22 @@ export async function updateTask(id: string, updateData: Partial<Task>): Promise
     if (!ObjectId.isValid(id)) return;
     const tasksCollection = await getTasksCollection();
     
-    // Create a copy to avoid modifying the original object
-    const dataToUpdate: Partial<Omit<Task, 'id'>> = { ...updateData };
-    
-    // Explicitly delete the 'id' property to prevent attempting to update the immutable _id field in MongoDB.
-    delete dataToUpdate.id;
+    const dataToSet: Partial<Omit<Task, 'id'>> = { ...updateData };
+    delete dataToSet.id;
 
-    if(dataToUpdate.status === 'Completed' && !updateData.completedAt) {
-        dataToUpdate.completedAt = new Date().toISOString();
+    const updateOperation: UpdateFilter<Omit<Task, 'id'>> = {
+        $set: dataToSet
+    };
+
+    if (dataToSet.status === 'Completed' && !updateData.completedAt) {
+        dataToSet.completedAt = new Date().toISOString();
+    } else if (dataToSet.status && dataToSet.status !== 'Completed') {
+        updateOperation.$unset = { completedAt: "" };
     }
 
     await tasksCollection.updateOne(
         { _id: new ObjectId(id) },
-        { $set: dataToUpdate }
+        updateOperation
     );
 
     revalidatePath('/');
@@ -93,6 +96,7 @@ export async function addBulkTasks(newTasks: (Omit<Task, 'id'>)[]): Promise<void
       await tasksCollection.insertMany(tasksToInsert);
       revalidatePath('/');
       revalidatePath('/tasks');
+      revalidatePath('/reporting');
     }
   }
 
