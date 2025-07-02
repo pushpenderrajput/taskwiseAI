@@ -32,16 +32,16 @@ export const columns: ColumnDef<Task>[] = [
     enableSorting: false,
     enableHiding: false,
   },
-  {
-    accessorKey: 'id',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Task ID" />
-    ),
-    cell: ({ row }) => {
-      const id = row.getValue('id') as string;
-      return <div className="w-[80px]">...{id.slice(-6)}</div>;
-    },
-  },
+  // {
+  //   accessorKey: 'id',
+  //   header: ({ column }) => (
+  //     <DataTableColumnHeader column={column} title="Task ID" />
+  //   ),
+  //   cell: ({ row }) => {
+  //     const id = row.getValue('id') as string;
+  //     return <div className="w-[80px]">...{id.slice(-6)}</div>;
+  //   },
+  // },
   {
     accessorKey: 'title',
     header: ({ column }) => (

@@ -15,7 +15,7 @@ export interface Task {
   accountManager?: string;
   status: TaskStatus;
   priority: TaskPriority;
-  createdAt: string; // ISO string
-  completedAt?: string; // ISO string
+  createdAt: string; 
+  completedAt?: string; 
   subtasks?: Subtask[];
 }
