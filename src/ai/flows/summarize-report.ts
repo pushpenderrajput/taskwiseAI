@@ -21,6 +21,7 @@ const SummarizeReportInputSchema = z.object({
   })).describe("A list of completed tasks."),
   startDate: z.string().describe("The start date of the reporting period in 'MM/DD/YYYY' format."),
   endDate: z.string().describe("The end date of the reporting period in 'MM/DD/YYYY' format."),
+  accountManager: z.string().optional().describe("The account manager for this report. If provided, the summary should focus on their activity."),
 });
 export type SummarizeReportInput = z.infer<typeof SummarizeReportInputSchema>;
 
@@ -42,18 +43,23 @@ The user's account/project is in the 'title' field, and the specific task is in 
 
 Generate a report summary based on the following data:
 - Reporting Period: {{startDate}} to {{endDate}}
+{{#if accountManager}}- Account Manager: {{accountManager}}{{/if}}
 - Completed Tasks Details: {{json tasks}}
 
 Your summary MUST follow this structure and tone exactly, using markdown for bolding and newlines for spacing:
 
-"Here is a brief analysis of your activity report for the period {{startDate}} - {{endDate}}:
+"Here is a brief analysis of your activity report for the period {{startDate}} - {{endDate}}{{#if accountManager}} for **{{accountManager}}**{{/if}}:
 
 **Summary & Key Metrics**
-This report covers the reporting period. During this time, your **Total Tasks Completed** stands at **{{tasks.length}}**.
+This report covers the reporting period. During this time, the **Total Tasks Completed** stands at **{{tasks.length}}**.
 [Mention one or two key completions, for example: 'This includes the "Task Description" task for the "Account/Project" account recorded on its completion date.']
 
 **Observations & Suggestions**
-[Analyze the activity. Mention which accounts/projects are most active. Mention which account managers are most active. For example: 'Activity was concentrated on the X account, handled by John D.' or 'Activity was low during this period.' Provide actionable suggestions. For example: 'To gain meaningful insights, consider logging tasks more consistently to build a comprehensive dataset.']"
+{{#if accountManager}}
+All activity in this report is attributed to **{{accountManager}}**. [Analyze their specific activity. For example: 'They focused heavily on the X account.' or 'Their activity was consistent across several projects.']
+{{else}}
+[Analyze the activity. Mention which accounts/projects are most active. Mention which account managers are most active. For example: 'Activity was concentrated on the X account, handled by John D.' or 'Activity was low during this period.' Provide actionable suggestions. For example: 'To gain meaningful insights, consider logging tasks more consistently to build a comprehensive dataset.']
+{{/if}}"
 
 You MUST ONLY return a valid JSON object that strictly follows this schema: { "summary": "Your detailed summary here, including the sections and markdown." }.
 Do not include any other text, comments, or markdown formatting like \`\`\`json.
