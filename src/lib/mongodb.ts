@@ -4,7 +4,7 @@ const uri = process.env.MONGODB_URI ? process.env.MONGODB_URI.trim() : undefined
 
 if (!uri) {
   throw new Error(
-    'Invalid/Missing environment variable: "MONGODB_URI".\nPlease add your connection string to the .env file.\nExample: MONGODB_URI="mongodb+srv://user:password@cluster.mongodb.net/your-db-name"'
+    'Invalid/Missing environment variable: "MONGODB_URI".\nPlease add your connection string to the .env file.\nExample: MONGODB_URI="mongodb+srv://<user>:<password>@<cluster-address>/<database-name>?retryWrites=true&w=majority"'
   );
 }
 

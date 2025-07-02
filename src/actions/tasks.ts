@@ -10,7 +10,7 @@ type MongoTask = WithId<Omit<Task, 'id'>>;
 // Helper to get the tasks collection
 async function getTasksCollection(): Promise<Collection<Omit<Task, 'id'>>> {
   const client = await clientPromise;
-  const db = client.db('taskwise_ai');
+  const db = client.db(); // Use the default database from the connection string
   return db.collection<Omit<Task, 'id'>>('tasks');
 }
 
@@ -33,12 +33,12 @@ export async function getTaskById(id: string): Promise<Task | null> {
     return task ? mapTask(task) : null;
 }
 
-export async function addTask(taskData: Omit<Task, 'id' | 'createdAt' | 'status'>): Promise<Task> {
+export async function addTask(taskData: Omit<Task, 'id' | 'createdAt' | 'completedAt'>): Promise<Task> {
   const tasksCollection = await getTasksCollection();
   const newTask: Omit<Task, 'id'> = {
     ...taskData,
-    status: 'To-Do',
     createdAt: new Date().toISOString(),
+    ...(taskData.status === 'Completed' && { completedAt: new Date().toISOString() }),
   };
   const result = await tasksCollection.insertOne(newTask);
   
@@ -53,9 +53,12 @@ export async function updateTask(id: string, updateData: Partial<Task>): Promise
     if (!ObjectId.isValid(id)) return;
     const tasksCollection = await getTasksCollection();
     
-    const { id: taskId, ...restOfUpdateData } = updateData;
+    // Create a copy to avoid modifying the original object
+    const dataToUpdate: Partial<Omit<Task, 'id'>> = { ...updateData };
+    
+    // Explicitly delete the 'id' property to prevent attempting to update the immutable _id field in MongoDB.
+    delete dataToUpdate.id;
 
-    const dataToUpdate = { ...restOfUpdateData };
     if(dataToUpdate.status === 'Completed' && !updateData.completedAt) {
         dataToUpdate.completedAt = new Date().toISOString();
     }
@@ -119,11 +122,12 @@ export async function completeAndCarryForward(taskId: string): Promise<void> {
 
     await updateTask(taskId, { status: 'Completed' });
 
-    const newTaskData: Omit<Task, 'id' | 'createdAt' | 'status'> = {
+    const newTaskData: Omit<Task, 'id' | 'createdAt' | 'completedAt'> = {
         title: task.title,
         description: task.description,
         accountManager: task.accountManager,
         priority: task.priority,
+        status: 'To-Do',
         subtasks: task.subtasks?.map((st) => ({
             ...st,
             id: `sub-${Date.now()}-${Math.random()}`,
@@ -138,11 +142,12 @@ export async function followUp(taskId: string): Promise<void> {
     const task = await getTaskById(taskId);
     if (!task) return;
 
-    const newTaskData: Omit<Task, 'id' | 'createdAt' | 'status'> = {
+    const newTaskData: Omit<Task, 'id' | 'createdAt' | 'completedAt'> = {
         title: `Follow up on: ${task.title}`,
         description: `Original task description: ${task.description || 'N/A'}`,
         accountManager: task.accountManager,
         priority: 'High' as TaskPriority,
+        status: 'To-Do',
     };
     await addTask(newTaskData);
 }
